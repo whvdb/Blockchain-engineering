@@ -1,1 +1,118 @@
 # This is assignment 1
+import os
+import binascii
+from asyncio import run
+
+from ipv8.community import Community
+from ipv8.configuration import ConfigBuilder, Strategy, WalkerDefinition, default_bootstrap_defs
+from ipv8.keyvault.crypto import ECCrypto
+from ipv8.peer import Peer
+from ipv8.peerdiscovery.network import PeerObserver
+from ipv8.util import run_forever
+from ipv8_service import IPv8
+from ipv8.configuration import BootstrapperDefinition, Bootstrapper
+
+import binascii
+from ipv8.messaging.payload import VariablePayloadWID
+
+
+
+#the nonce mining
+# import hashlib
+# import struct
+
+# email = "whvandenbos@tudelft.nl"
+# url = "https://github.com/whvdb/Blockchain-engineering/blob/main/assignment1"
+# nonce = 0
+
+# # Pre-encode the strings to bytes once to save speed
+# base = f"{email}\n{url}\n".encode('utf-8')
+
+# print("Mining...")
+# while True:
+#     # 1. Pack nonce to 8-byte big-endian
+#     nonce_bytes = struct.pack('>q', nonce)
+    
+#     # 2. Hash the combination
+#     h = hashlib.sha256(base + nonce_bytes).digest()
+    
+#     # 3. The "28-bit" check (3 zero bytes + 4th byte < 16)
+#     if h[0] == 0 and h[1] == 0 and h[2] == 0 and h[3] < 16:
+#         print(f"DONE! Use this nonce: {nonce}")
+#         break
+        
+#     nonce += 1
+
+# Result is 316392447
+
+class MyMessagePayload(VariablePayloadWID):
+    msg_id = 1
+    # we need: string (email), string (github), 64-bit int (nonce)
+    format_list = ['varlenHutf8', 'varlenHutf8', 'q'] 
+    names = ['email', 'github_url', 'nonce']
+
+    def __init__(self, email: str, github_url: str, nonce: int):
+        super().__init__(email, github_url, nonce)
+
+class ServerResponsePayload(VariablePayloadWID):
+    msg_id = 2  
+    format_list = ['?', 'varlenHutf8']
+    names = ['success', 'message']
+
+class MyTargetCommunity(Community): 
+    community_id = binascii.unhexlify("2c1cc6e35ff484f99ebdfb6108477783c0102881")
+    server_public_key = "4c69624e61434c504b3a86b23934a28d669c390e2d1fc0b0870706c4591cc0cb178bc5a811da6d87d27ef319b2638ef60cc8d119724f4c53a1ebfad919c3ac4136c501ce5c09364e0ebb"
+
+    def started(self) -> None:
+        # Register the payload so the community knows it exists
+        #self.add_message_handler(MyMessagePayload, self.on_message_received)
+        self.add_message_handler(ServerResponsePayload, self.on_server_response)
+
+        self.register_task("check_for_server", self.check_for_server, interval=2.0, delay=1.0)
+        print("Community started. Scanning for server...")
+
+    def check_for_server(self):
+        for peer in self.get_peers():
+            peer_pk_hex = binascii.hexlify(peer.public_key.key_to_bin()).decode()
+            if peer_pk_hex == self.server_public_key:
+                print("--- MATCH FOUND ---")
+                self.send_greeting(peer)
+                self.cancel_pending_task("check_for_server")
+
+    def send_greeting(self, peer: Peer):
+            print(f"Send PoW to: {peer}")
+            
+            my_email = "whvandenbos@tudelft.nl"
+            my_github = "https://github.com/whvdb/Blockchain-engineering/blob/main/assignment1"
+            my_nonce = 316392447 #I precomputed this 
+            
+            # load these into the payload class
+            payload = MyMessagePayload(my_email, my_github, my_nonce)
+            self.ez_send(peer, payload)
+
+    #the response did for some reason not work when i used serverresponsepayload, so instead I just use this and read the response from the terminal. 
+    #this is fine for the assignment
+    def on_server_response(self, peer: Peer, payload):
+            message_str = payload
+            print("-" * 30)
+            print("response from server:")
+            #print(f"Status: {status}")
+            print(f"Message: {message_str}")
+            print("-" * 30)
+
+async def start_client() -> None:
+    builder = ConfigBuilder().clear_keys().clear_overlays()
+    builder.add_key("assignment1key", "curve25519", "assignment1key.pem")
+    #just juse standard bootsrap since it works fine
+    # When there was a bug in the ipv8 code from the assignemt I thought my code did not work because of this or the randomwalk
+    builder.add_overlay("MyTargetCommunity", "assignment1key",
+                        [WalkerDefinition(Strategy.RandomWalk, 42, {"timeout":3.0})],
+                         default_bootstrap_defs,#[BootstrapperDefinition(Bootstrapper.UDPBroadcastBootstrapper, {})],#default_bootstrap_defs, 
+                        {}, [("started",)])
+    await IPv8(builder.finalize(),
+               extra_communities={"MyTargetCommunity": MyTargetCommunity}).start()
+    print("IPv8 Client started, now walking the network")
+    await run_forever()
+
+if __name__ == "__main__":
+    run(start_client())
