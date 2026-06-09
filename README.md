@@ -1,7 +1,7 @@
 This github contains assignemts 1, 2 and 3 of the course Blockchain engineering of the TU Delft, where we have to implement some things in IPV8. 
 Documentation on IPV8 can be found for example here: https://py-ipv8.readthedocs.io/en/latest/
 
-#Assignment 1
+#Assignment 1#
 The goal is to: 
 1. Connects to a running server via the IPv8 peer-to-peer network
 2. Computes a Proof of Work (PoW) over your email **and** your GitHub repo URL
