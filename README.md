@@ -11,7 +11,7 @@ The goal is to:
 For this, the code 
 
 1. P2P Network Server Discovery
-Overlay Joining: The script initializes an IPv8 instance and joins a specific target community identified by the Hex ID 2c1cc6e35ff484f99ebdfb6108477783c0102881.
+Overlay Joining: The script initializes an IPv8 instance and joins a specific target community identified by the Hex ID 2c1cc6e35ff484f99ebdfb6108477783c0102881.\\
 Peer Discovery: It utilizes standard bootstrap definitions and a RandomWalk strategy to actively discover peers in the network.
 Server Target Selection: A scheduled task (check_for_server) runs every 2.0 seconds, looping through discovered peers to match their public key against the 
 hardcoded server public key:
