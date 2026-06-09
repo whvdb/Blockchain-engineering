@@ -66,4 +66,47 @@ The assignment is to:
 You and your two teammates from Lab 2 build IPv8 nodes that together run a 3-node Proof-of-Work blockchain. Each member runs one node. Your nodes must mine blocks, propagate them, converge on a single chain, and answer queries from the Lab 3 server.
 Once you register, the Lab 3 server joins your blockchain community, submits a test transaction, and walks every chain to check PoW, header linking, body commitment, and 3-way consistency. Your group passes the first time those checks all hold.
 
+Our final solution uses the following key points:
+Decentralized Mining: All team members run the mining loop concurrently to compete for block discovery.
+Longest-Chain Rule: Automatic fork resolution and chain reorganizations happen when a peer discovers a longer valid path.
+Transaction Gossiping: Transactions submitted to any node are flooded to all teammates, ensuring synchronized mempools across the network.
+Reorg-Safe Mempool: Transactions from orphaned/abandoned blocks are automatically rescued and pushed back into the active mempool to ensure zero data loss.
+
+To illustrate how it works, we use the following step by step  example:
+
+## Step 1: Bootstrapping & Server Registration (Node 1 Startup)
+Script Initialization: You run Node 1 with the --register and --test-mode flags. IPv8 starts up and instantiates two overlay networks locally: Lab3GlobalCommunity and Lab3BlockchainCommunity.
+Server Discovery: Node 1 utilizes its built-in bootstrap definitions to discover the central assignment verification server (LAB3_SERVER_PUBLIC_KEY_HEX).
+Registration Request: The lab3_global_loop task fires every 0.3 seconds. Node 1 notices it has found the verified server and transmits a RegisterPayload containing your Group ID and your local blockchain community ID.
+Server Confirmation: The central server processes the registration and returns a RegistrationResponsePayload. Node 1 prints the message, successfully marks its global registration task as complete (self.done.set()), and shuts down the global community to save bandwidth.
+
+## Step 2: Injecting and Gossiping the Test Transaction (Node 1)
+Mock Generation: Simultaneously, the background lab3_consensus_loop runs every 1.0 second on Node 1. Because it is in --test-mode and sitting at the genesis block (Height 0), it triggers try_submit_transaction_test().
+Transaction Signing: Node 1 creates a mock transaction payload using its own cryptographic keypair, signs the payload, and feeds it locally into on_submit_transaction_impl().
+Mempool Insertion: Node 1 validates its own signature, registers the transaction in self.known_transactions, and drops it into self.mempool.
+Standing By: Because Node 1 doesn't have any connected teammates yet, it updates its logs and waits.
+
+## Step 3: Peer Discovery & Network Sync (Nodes 2 & 3 Startup)
+Joining the Network: You turn on Node 2 and Node 3 without registration or test flags. They initialize their local Lab3BlockchainCommunity overlay networks.
+P2P Peer Discovery: Utilizing the configured Strategy.RandomWalk and Strategy.EdgeWalk discovery routing strategies, the nodes discover one another's network addresses. Their local on_peer_added() methods fire, printing verification logs confirming that the teammates have bound together in the mesh.
+Transaction Flooding (Gossip): The moment Node 1 registers Node 2 and Node 3 as active teammates, its internal transaction handler pushes the original test transaction payload across the network to them using ez_send().
+Mempool Synchronization: Nodes 2 and 3 receive the payload via on_submit_transaction(). They verify Node 1's cryptographic signature, add it to their respective self.known_transactions dictionaries, and pop it into their local self.mempool queues.
+
+## Step 4: The Competitive Mining Race
+Race starts: The lab3_consensus_loop tasks on all three nodes fire simultaneously. Each node discovers that self.mempool is no longer empty.
+Hashing work: Each node independently grabs the transaction from the pool, establishes a block header pointing to the GENESIS block's hash as prev_hash, and resets its nonce to 0 (since it is a new hash puzzle, that uses the prev-hash in it, the old nonce gives no information anymore, but you want to keep the number small because it it is defined to be 64 bits).
+Cryptographic Execution: All nodes start looping through nonces via _mine_header(). They are racing to compute a SHA-256 hash that meets the target criteria: 22 leading zeros (DIFFICULTY = 22).
+
+Now assume for example node 2 is the fastest:
+Block Resolution: Node 2's CPU calculates a winning nonce first. Its _mine_header() loop breaks, creating a valid Block structure at Height 1.
+
+## Step 5: Block Announcement & Longest-Chain Rule Adoption
+Local Block Adoption: Node 2's CPU calculates a winning nonce first! It builds a valid Block at Height 1, updates its local self.tip_hash, clears its mempool, and uses _announce_block() to broadcast a BlockchainAnnounceBlockPayload to its teammates.
+Handling Concurrent Blocks (The Fork): If Node 3 finishes mining its own version of a Height 1 block at the exact same time, it also broadcasts its block to the network.
+The Tie-Breaker Rule: When Node 1 receives both competing Height 1 blocks, its code executes the core structural check in _adopt_block():
+if block.height > self.current_height():
+Whichever block Node 1 receives first (e.g., Node 2's block) will pass this check because $1 > 0$. Node 1 updates its tip to Node 2's block.When Node 1 receives the second block (Node 3's block), the rule evaluates $1 > 1$, which is False. Node 1 saves Node 3's block in its history (self.blocks_by_hash) but does not switch its active tip. The network is now temporarily split (forked).
+Resolving the Tie via the Longest Chain: The tie is broken in the next mining round. All nodes keep competing. If Node 3 successfully mines a block at Height 2 on top of its own branch and broadcasts it, Node 1 receives it.
+Chain Reorganization (Reorg): Node 1 verifies the new Height 2 block. It sees that its parent exists in history (Node 3's block) and evaluates the height rule: $2 > 1$ (True). Because Node 3's chain is now strictly longer, Node 1 drops Node 2's block as its active tip, calls _rebuild_canonical_index(), and shifts its entire canonical history over to Node 3's longer chain.
+Mempool Rewinding: Immediately after switching to the longer chain, Node 1 runs _drop_confirmed_transactions(). It reviews the transactions in the newly accepted chain. Any transactions that were in the abandoned Node 2 block but are missing from Node 3's longer chain are safely rescued and put back into self.mempool so they can be mined in the next block.
 
