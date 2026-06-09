@@ -1,7 +1,7 @@
 This github contains assignemts 1, 2 and 3 of the course Blockchain engineering of the TU Delft, where we have to implement some things in IPV8. 
 Documentation on IPV8 can be found for example here: https://py-ipv8.readthedocs.io/en/latest/
 
-#Assignment 1#
+# Assignment 
 The goal is to: 
 1. Connects to a running server via the IPv8 peer-to-peer network
 2. Computes a Proof of Work (PoW) over your email **and** your GitHub repo URL
@@ -29,7 +29,7 @@ When the server transmits the evaluation outcome back to our peer, the on_server
 Run the code by putting in the terminal
 python assignment1.py
 
-#Assignment 2
+# Assignment 2
 The assignment is to:
 You and two teammates build IPv8 clients that sign challenges from a server within a strict shared budget.
 Each round, the server issues a 32-byte nonce. All 3 members sign it; one collects the 3 signatures and submits the bundle. 
@@ -60,7 +60,7 @@ The code can be run by typing in the terminal:
 python assignment2.py --key assignmentskey.pem --port 8091
 Where assinmentskey.pem is the private key that is registered to the server in assignment 1.
 
-#Assignment 3
+# Assignment 3
 The assignment is to:
 You and your two teammates from Lab 2 build IPv8 nodes that together run a 3-node Proof-of-Work blockchain. Each member runs one node. Your nodes must mine blocks, propagate them, converge on a single chain, and answer queries from the Lab 3 server.
 Once you register, the Lab 3 server joins your blockchain community, submits a test transaction, and walks every chain to check PoW, header linking, body commitment, and 3-way consistency. Your group passes the first time those checks all hold.
