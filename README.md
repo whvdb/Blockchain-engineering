@@ -70,6 +70,9 @@ Longest-Chain Rule: Automatic fork resolution and chain reorganizations happen w
 Transaction Gossiping: Transactions submitted to any node are flooded to all teammates, ensuring synchronized mempools across the network.  
 Reorg-Safe Mempool: Transactions from orphaned/abandoned blocks are automatically rescued and pushed back into the active mempool to ensure zero data loss.
 
+Run the code by having one node including --register and --test-mode in the terminal command, and the other two can without. The file assignemtnskey.pem is the filename that contains the private key of this node from assignment 1.  Put in the terminal: 
+python "assignment 3 ready to run2.py" --key assignmentskey.pem --port 8091 --group-id d1988fde8cdd74e4 --member-key 4c69624e61434c504b3ae46676ba012e13d7e989930de441c5c74387a43d9b4c6d6f5037c783fa657c416a7791a2b1d45529e6804900465ec1608d64930f43f91b7c282fdec7b442d609 --member-key 4c69624e61434c504b3ab5d5fb13bc9a5a7c03efce411b71fa033e1f64aa9b2bacf672760c9991800c3c1e9088b94ce570f9c0e9dae8537014b84086b22ac1e5570b6d15e7f972574c29 --member-key 4c69624e61434c504b3a62250a7fcf0e526d3b228691b882a2bee18163907b3426d3e7c61e6c2474337212d86226da9d3e51dc82cf56491b0b171db113dd6f6a1147f938118a5dbae781 --register --test-mode
+
 To illustrate how it works, we use the following step by step  example:
 
 ## Step 1: Bootstrapping & Server Registration (Node 1 Startup)
