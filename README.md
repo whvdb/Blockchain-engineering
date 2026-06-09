@@ -1,7 +1,7 @@
 This github contains assignemts 1, 2 and 3 of the course Blockchain engineering of the TU Delft, where we have to implement some things in IPV8. 
 Documentation on IPV8 can be found for example here: https://py-ipv8.readthedocs.io/en/latest/
 
-# Assignment 
+# Assignment 1
 The goal is to: 
 1. Connects to a running server via the IPv8 peer-to-peer network
 2. Computes a Proof of Work (PoW) over your email **and** your GitHub repo URL
@@ -12,8 +12,12 @@ For this, the code
 
 1. P2P Network Server Discovery
 Overlay Joining: The script initializes an IPv8 instance and joins a specific target community identified by the Hex ID 2c1cc6e35ff484f99ebdfb6108477783c0102881.
+
 Peer Discovery: It utilizes standard bootstrap definitions and a RandomWalk strategy to actively discover peers in the network.
-Server Target Selection: A scheduled task (check_for_server) runs every 2.0 seconds, looping through discovered peers to match their public key against the hardcoded server public key:
+
+Server Target Selection: A scheduled task (check_for_server) runs every 2.0 seconds, looping through discovered peers to match their public key against the 
+
+hardcoded server public key:
 4c69624e61434c504b3a86b23934a28d669c390e2d1fc0b0870706c4591cc0cb178bc5a811da6d87d27ef319b2638ef60cc8d119724f4c53a1ebfad919c3ac4136c501ce5c09364e0ebb
 
 2. The (PoW) Computation
