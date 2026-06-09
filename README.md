@@ -37,27 +37,26 @@ Across 3 rounds, each must be submitted by a different member.
 Faster groups earn bonus credit — the lab is graded on speed, not just correctness.
 
 1. Group Registration
-Targeting the Server: The node seeks out the verified server peer matching the unique public key hash LAB2_SERVER_PUBLIC_KEY_HEX.
-Registration Submission: Once the connection is stable, one or more group members submit a RegisterPayload containing the strict canonical order of all three team member public keys.
+Targeting the Server: The node seeks out the verified server peer matching the unique public key hash LAB2_SERVER_PUBLIC_KEY_HEX.  
+Registration Submission: Once the connection is stable, one or more group members submit a RegisterPayload containing the strict canonical order of all three team member public keys.  
 Group Identification: Upon success, the server returns a RegistrationResponsePayload providing a static group_id, authorizing the team to progress to the challenge phase.
 
 2. Challenge 
 The submisser changes across round acording to a fixed SUBMIT_ORDER = [1, 2, 3].
-The submitter peer of that round requests a distinct round challenge via ChallengeRequestPayload.
-Server Response: The server returns a cryptographic nonce and corresponding metadata through a ChallengeResponsePayload.
-Internal Peer Broadcast: The submitter signs the nonce locally, then distributes the raw nonce directly to the other teammates using a NoncePayload message over the P2P overlay.
+The submitter peer of that round requests a distinct round challenge via ChallengeRequestPayload.  
+Server Response: The server returns a cryptographic nonce and corresponding metadata through a ChallengeResponsePayload.  
+Internal Peer Broadcast: The submitter signs the nonce locally, then distributes the raw nonce directly to the other teammates using a NoncePayload message over the P2P overlay.  
 Signature Generation & Back-Propagation: Non-submitting teammates receive the NoncePayload and verify its round metadata.
 Each teammate generates a local elliptic curve cryptographic signature using self.my_peer.key.signature(nonce).
 They transmit this back to the round submitter using a SignatureSharePayload.
 
 3. Signature Aggregation & Submission
-Validation: The round submitter collects incoming signature shares and evaluates their cryptographic integrity using verify_share().
-Bundle Submission: Once all three unique, valid signatures (Member 1, Member 2, and Member 3) are assembled inside the ActiveRound tracking object, the submitter wraps them in a SignatureBundlePayload and sends it to the server.
-Round Progression: The server evaluates the bundle, issues a RoundResultPayload, and the group continues to a next round (updates current_round) until all three rounds complete successfully. Teammates stay in sync via RoundDonePayload notifications.
+Validation: The round submitter collects incoming signature shares and evaluates their cryptographic integrity using verify_share().  
+Bundle Submission: Once all three unique, valid signatures (Member 1, Member 2, and Member 3) are assembled inside the ActiveRound tracking object, the submitter wraps them in a SignatureBundlePayload and sends it to the server.  
+Round Progression: The server evaluates the bundle, issues a RoundResultPayload, and the group continues to a next round (updates current_round) until all three rounds complete successfully. Teammates stay in sync via RoundDonePayload notifications.  
 
 The code can be run by typing in the terminal:
-python assignment2.py --key assignmentskey.pem --port 8091
-
+python assignment2.py --key assignmentskey.pem --port 8091  
 Where assinmentskey.pem is the private key that is registered to the server in assignment 1.
 
 # Assignment 3
