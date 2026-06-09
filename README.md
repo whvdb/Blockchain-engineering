@@ -58,6 +58,7 @@ Round Progression: The server evaluates the bundle, issues a RoundResultPayload,
 
 The code can be run by typing in the terminal:
 python assignment2.py --key assignmentskey.pem --port 8091
+
 Where assinmentskey.pem is the private key that is registered to the server in assignment 1.
 
 # Assignment 3
