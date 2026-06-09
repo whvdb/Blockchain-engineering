@@ -37,12 +37,12 @@ Across 3 rounds, each must be submitted by a different member.
 **All 3 rounds must finish inside 10 seconds wall-clock**, measured from the moment the server sends the round-1 nonce. 
 Faster groups earn bonus credit — the lab is graded on speed, not just correctness.
 
-1: Group Registration
+1. Group Registration
 Targeting the Server: The node seeks out the verified server peer matching the unique public key hash LAB2_SERVER_PUBLIC_KEY_HEX.
 Registration Submission: Once the connection is stable, one or more group members submit a RegisterPayload containing the strict canonical order of all three team member public keys.
 Group Identification: Upon success, the server returns a RegistrationResponsePayload providing a static group_id, authorizing the team to progress to the challenge phase.
 
-2: Challenge 
+2. Challenge 
 The submisser changes across round acording to a fixed SUBMIT_ORDER = [1, 2, 3].
 The submitter peer of that round requests a distinct round challenge via ChallengeRequestPayload.
 Server Response: The server returns a cryptographic nonce and corresponding metadata through a ChallengeResponsePayload.
@@ -51,7 +51,7 @@ Signature Generation & Back-Propagation: Non-submitting teammates receive the No
 Each teammate generates a local elliptic curve cryptographic signature using self.my_peer.key.signature(nonce).
 They transmit this back to the round submitter using a SignatureSharePayload.
 
-3: Signature Aggregation & Submission
+3. Signature Aggregation & Submission
 Validation: The round submitter collects incoming signature shares and evaluates their cryptographic integrity using verify_share().
 Bundle Submission: Once all three unique, valid signatures (Member 1, Member 2, and Member 3) are assembled inside the ActiveRound tracking object, the submitter wraps them in a SignatureBundlePayload and sends it to the server.
 Round Progression: The server evaluates the bundle, issues a RoundResultPayload, and the group continues to a next round (updates current_round) until all three rounds complete successfully. Teammates stay in sync via RoundDonePayload notifications.
