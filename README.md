@@ -37,12 +37,12 @@ Across 3 rounds, each must be submitted by a different member.
 **All 3 rounds must finish inside 10 seconds wall-clock**, measured from the moment the server sends the round-1 nonce. 
 Faster groups earn bonus credit — the lab is graded on speed, not just correctness.
 
-1. Group Registration
+1: Group Registration
 Targeting the Server: The node seeks out the verified server peer matching the unique public key hash LAB2_SERVER_PUBLIC_KEY_HEX.
 Registration Submission: Once the connection is stable, one or more group members submit a RegisterPayload containing the strict canonical order of all three team member public keys.
 Group Identification: Upon success, the server returns a RegistrationResponsePayload providing a static group_id, authorizing the team to progress to the challenge phase.
 
- 2: Challenge 
+2: Challenge 
 The submisser changes across round acording to a fixed SUBMIT_ORDER = [1, 2, 3].
 The submitter peer of that round requests a distinct round challenge via ChallengeRequestPayload.
 Server Response: The server returns a cryptographic nonce and corresponding metadata through a ChallengeResponsePayload.
